@@ -1,28 +1,14 @@
-import { parseString } from 'xml2js';
+// Script simple para probar userByCUIL harcodeado
+// Ejecutar con: node test-simple-hardcoded.js
 
-interface UserByCUILParams {
-  pCUIT: string;
-}
+const { parseString } = require('xml2js');
 
-interface AddressData {
-  domicilio: string;
-  localidad: string;
-}
-
-interface AuthHeaders {
-  'Laburen-User': string;
-  'Laburen-Password': string;
-}
-
-export async function userByCUIL(params: UserByCUILParams, headers: AuthHeaders): Promise<AddressData[]> 
-{
-  const { pCUIT } = params;
-  const { 'Laburen-User': usuario, 'Laburen-Password': contrasena } = headers;
-
-  // Validar que se proporcionen las credenciales
-  if (!usuario || !contrasena) {
-    throw new Error('Se requieren los headers Laburen-User y Laburen-Password');
-  }
+async function testUserByCUILHardcoded() {
+  console.log('🧪 Probando userByCUIL con valores harcodeados...\n');
+  
+  const pCUIT = "30717863387";
+  const usuario = "AgenteAI";
+  const contrasena = "Cargo2024-";
 
   // Construir el XML SOAP
   const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
@@ -39,6 +25,8 @@ export async function userByCUIL(params: UserByCUILParams, headers: AuthHeaders)
 </soap:Envelope>`;
 
   try {
+    console.log('📡 Enviando petición SOAP...');
+    
     // Hacer la petición SOAP
     const response = await fetch('https://grupocargo.sytes.net/sigews.asmx', {
       method: 'POST',
@@ -54,6 +42,7 @@ export async function userByCUIL(params: UserByCUILParams, headers: AuthHeaders)
     }
 
     const xmlResponse = await response.text();
+    console.log('📥 Respuesta XML recibida, parseando...');
 
     // Parsear la respuesta XML
     return new Promise((resolve, reject) => {
@@ -75,11 +64,13 @@ export async function userByCUIL(params: UserByCUILParams, headers: AuthHeaders)
           const tables = newDataSet['Table'] || [];
 
           // Convertir a formato JSON
-          const addressData: AddressData[] = tables.map((table: any) => ({
+          const addressData = tables.map((table) => ({
             domicilio: table.domicilio?.[0] || '',
             localidad: table.localidad?.[0] || ''
           }));
 
+          console.log('✅ Resultado exitoso:');
+          console.log(JSON.stringify(addressData, null, 2));
           resolve(addressData);
         } catch (parseError) {
           reject(new Error(`Error al extraer datos de la respuesta: ${parseError}`));
@@ -88,31 +79,16 @@ export async function userByCUIL(params: UserByCUILParams, headers: AuthHeaders)
     });
 
   } catch (error) {
-    throw new Error(`Error en userByCUIL: ${error}`);
-  }
-}
-
-// Función helper para usar el middleware con headers
-export async function getUserByCUIL(pCUIT: string, headers: AuthHeaders): Promise<AddressData[]> {
-  return userByCUIL({ pCUIT }, headers);
-}
-
-// Función de prueba harcodeada
-export async function testUserByCUILHardcoded(): Promise<AddressData[]> {
-  console.log('🧪 Probando userByCUIL con valores harcodeados...');
-  
-  const pCUIT = "30717863387";
-  const headers = {
-    'Laburen-User': "AgenteAI",
-    'Laburen-Password': "Cargo2024-"
-  };
-
-  try {
-    const resultado = await getUserByCUIL(pCUIT, headers);
-    console.log('✅ Resultado exitoso:', JSON.stringify(resultado, null, 2));
-    return resultado;
-  } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('❌ Error:', error.message);
     throw error;
   }
 }
+
+// Ejecutar la prueba
+testUserByCUILHardcoded()
+  .then(() => {
+    console.log('\n🎯 Prueba completada exitosamente!');
+  })
+  .catch((error) => {
+    console.log('\n💥 La prueba falló:', error.message);
+  }); 
