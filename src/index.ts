@@ -133,16 +133,18 @@ Context: ${JSON.stringify(context, null, 2)}`,
 
 export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		console.log('🌐 [fetch] Nueva petición recibida');
-		console.log('🌐 [fetch] URL:', request.url);
-		console.log('🌐 [fetch] Método:', request.method);
-		console.log('🌐 [fetch] Headers recibidos:', Object.fromEntries(request.headers.entries()));
-		
-		const url = new URL(request.url);
+
+		const url = new URL(request.url)
 
 		// Extraer headers de autenticación
 		const laburenUser = request.headers.get("Laburen-User");
 		const laburenPassword = request.headers.get("Laburen-Password");
+
+		console.log(laburenUser);
+
+		if (!laburenUser || !laburenPassword) {
+			return new Response("Faltan headers de autenticación pa", { status: 401 });
+		}
 		
 		console.log('🔍 [fetch] Laburen-User extraído:', laburenUser ? 'PRESENTE' : 'AUSENTE');
 		console.log('🔍 [fetch] Laburen-Password extraído:', laburenPassword ? 'PRESENTE' : 'AUSENTE');
