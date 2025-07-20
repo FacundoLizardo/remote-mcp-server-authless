@@ -20,9 +20,6 @@ export class MyMCP extends McpAgent {
 			},
 			async ({ pCUIT }, context) => {
 				try {
-					console.log('🔍 [userByCUIL] Iniciando llamada a la herramienta');
-					console.log('🔍 [userByCUIL] pCUIT recibido:', pCUIT);
-					console.log('🔍 [userByCUIL] Contexto completo:', JSON.stringify(context, null, 2));
 					
 					// Extraer headers de autenticación del contexto
 					const contextProps = (this as any).props;
@@ -37,9 +34,6 @@ export class MyMCP extends McpAgent {
 
 					// Validar que se proporcionen las credenciales
 					if (!headers['user'] || !headers['password']) {
-						console.log('❌ [userByCUIL] Error: Headers de autenticación faltantes');
-						console.log('❌ [userByCUIL] user presente:', !!headers['user']);
-						console.log('❌ [userByCUIL] password presente:', !!headers['password']);
 						
 						return {
 							content: [
@@ -96,9 +90,9 @@ export default {
 		const laburenUser = request.headers.get("user");
 		const laburenPassword = request.headers.get("password");
 
-	//	if (!laburenUser || !laburenPassword) {
-//			return new Response("Faltan headers de autenticación pa", { status: 401 });
-//		}
+    	if (!laburenUser || !laburenPassword) {
+    		return new Response("Faltan headers de autenticación pa", { status: 401 });
+    	}
 		
 		// --- Inyectamos los headers de autenticación en las `props` del ExecutionContext ---
 		const context: ExecutionContext = Object.assign(Object.create(ctx), ctx, {
